@@ -1,0 +1,40 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: sql-scanner
+spec:
+  template:
+    spec:
+      containers:
+      - name: sql-scanner
+        image: sql-scanner:latest
+        imagePullPolicy: IfNotPresent
+        volumeMounts:
+        - name: sql-scripts
+          mountPath: /app/sql_scripts
+        - name: rules
+          mountPath: /app/rules
+        - name: reports
+          mountPath: /app/reports
+        - name: config
+          mountPath: /app/config.yaml
+        env:
+        - name: PYTHONUNBUFFERED
+          value: "1"
+        command: ["python", "sql_scanner.py"]
+        args: ["-s", "sql_scripts", "-r", "rules", "--report-format", "html", "json"]
+      volumes:
+      - name: sql-scripts
+        persistentVolumeClaim:
+          claimName: sql-scripts-pvc
+      - name: rules
+        persistentVolumeClaim:
+          claimName: rules-pvc
+      - name: reports
+        persistentVolumeClaim:
+          claimName: reports-pvc
+      - name: config
+        configMap:
+          name: sql-scanner-config
+      restartPolicy: Never
+  backoffLimit: 4 

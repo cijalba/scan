@@ -1,0 +1,85 @@
+image: python:3.9
+
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.pip-cache"
+  AZURE_NAMESPACE: "sql-scanner"
+
+cache:
+  paths:
+    - .pip-cache/
+    - venv/
+
+stages:
+  - build
+  - test
+  - deploy
+  - cleanup
+
+before_script:
+  - python -m pip install --upgrade pip
+  - python -m venv venv
+  - source venv/bin/activate
+  - pip install -r requirements.txt
+
+build:
+  stage: build
+  script:
+    - source venv/bin/activate
+    - python sql_scanner.py -s sql_scripts -r rules --report-format html json
+  artifacts:
+    paths:
+      - reports/
+    expire_in: 1 week
+
+deploy:
+  stage: deploy
+  image: mcr.microsoft.com/azure-cli
+  script:
+    - az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID
+    - az aks get-credentials --resource-group $AZURE_RESOURCE_GROUP --name $AZURE_AKS_CLUSTER
+    - |
+      kubectl create namespace $AZURE_NAMESPACE --dry-run=client -o yaml | kubectl apply -f -
+      kubectl create secret generic sql-scanner-secrets \
+        --from-literal=PYTHON_VERSION=3.9 \
+        --from-literal=VENV_PATH=venv \
+        -n $AZURE_NAMESPACE \
+        --dry-run=client -o yaml | kubectl apply -f -
+      kubectl create secret docker-registry sql-scanner-registry \
+        --docker-server=$AZURE_ACR_LOGIN_SERVER \
+        --docker-username=$AZURE_ACR_USERNAME \
+        --docker-password=$AZURE_ACR_PASSWORD \
+        -n $AZURE_NAMESPACE \
+        --dry-run=client -o yaml | kubectl apply -f -
+      kubectl create configmap sql-scanner-config \
+        --from-file=config.yaml \
+        -n $AZURE_NAMESPACE \
+        --dry-run=client -o yaml | kubectl apply -f -
+      kubectl create configmap sql-scripts \
+        --from-dir=sql_scripts \
+        -n $AZURE_NAMESPACE \
+        --dry-run=client -o yaml | kubectl apply -f -
+      kubectl create configmap rules \
+        --from-dir=rules \
+        -n $AZURE_NAMESPACE \
+        --dry-run=client -o yaml | kubectl apply -f -
+      kubectl apply -f k8s/deployment.yaml -n $AZURE_NAMESPACE
+      kubectl apply -f k8s/pvc.yaml -n $AZURE_NAMESPACE
+      kubectl wait --for=condition=complete job/sql-scanner -n $AZURE_NAMESPACE --timeout=300s
+      kubectl logs job/sql-scanner -n $AZURE_NAMESPACE
+  only:
+    - master
+    - develop
+  environment:
+    name: production
+    url: https://your-aks-cluster.com
+
+cleanup:
+  stage: cleanup
+  image: mcr.microsoft.com/azure-cli
+  script:
+    - az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID
+    - az aks get-credentials --resource-group $AZURE_RESOURCE_GROUP --name $AZURE_AKS_CLUSTER
+    - |
+      kubectl delete job sql-scanner -n $AZURE_NAMESPACE --ignore-not-found
+      kubectl delete pvc sql-scripts-pvc rules-pvc reports-pvc -n $AZURE_NAMESPACE --ignore-not-found
+  when: always 

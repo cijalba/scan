@@ -1,0 +1,28 @@
+image: python:3.9
+
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.pip-cache"
+
+cache:
+  paths:
+    - .pip-cache/
+    - venv/
+
+stages:
+  - scan
+
+sql-scanner:
+  stage: scan
+  script:
+    - python -m pip install --upgrade pip
+    - python -m venv venv
+    - source venv/bin/activate
+    - pip install -r requirements.txt
+    - python sql_scanner.py -s sql_scripts -r rules --report-format html json
+  artifacts:
+    paths:
+      - reports/
+    expire_in: 1 week
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "develop"
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" 

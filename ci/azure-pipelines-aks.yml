@@ -1,0 +1,151 @@
+trigger:
+  branches:
+    include:
+    - master
+    - develop
+  paths:
+    include:
+    - sql_scripts/**
+    - rules/**
+    - *.py
+    - requirements.txt
+    - config.yaml
+    - k8s/**
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  python.version: '3.9'
+  kubernetesServiceConnection: 'your-aks-service-connection'
+  namespace: 'sql-scanner'
+
+stages:
+- stage: Build
+  displayName: 'Build and Test'
+  jobs:
+  - job: Build
+    displayName: 'Build and Test'
+    steps:
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '$(python.version)'
+        addToPath: true
+
+    - script: |
+        python -m pip install --upgrade pip
+      displayName: 'Upgrade pip'
+
+    - script: |
+        python -m venv venv
+        source venv/bin/activate
+        pip install -r requirements.txt
+      displayName: 'Install dependencies'
+
+    - script: |
+        source venv/bin/activate
+        python sql_scanner.py -s sql_scripts -r rules --report-format html json
+      displayName: 'Run SQL Scanner'
+
+    - task: PublishPipelineArtifact@1
+      inputs:
+        targetPath: 'reports'
+        artifact: 'scan-reports'
+        publishLocation: 'pipeline'
+      displayName: 'Publish Scan Reports'
+
+- stage: Deploy
+  displayName: 'Deploy to AKS'
+  dependsOn: Build
+  condition: succeeded()
+  jobs:
+  - deployment: Deploy
+    displayName: 'Deploy to AKS'
+    environment: production
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: KubernetesManifest@0
+            inputs:
+              action: 'createSecret'
+              secretType: 'generic'
+              secretName: 'sql-scanner-secrets'
+              namespace: $(namespace)
+              secretArguments: |
+                --from-literal=PYTHON_VERSION=$(python.version)
+                --from-literal=VENV_PATH=venv
+
+          - task: KubernetesManifest@0
+            inputs:
+              action: 'createSecret'
+              secretType: 'dockerRegistry'
+              secretName: 'sql-scanner-registry'
+              namespace: $(namespace)
+              dockerRegistryEndpoint: 'your-acr-service-connection'
+
+          - task: KubernetesManifest@0
+            inputs:
+              action: 'createConfigMap'
+              configMapName: 'sql-scanner-config'
+              namespace: $(namespace)
+              configMapArguments: |
+                --from-file=config.yaml=config.yaml
+
+          - task: KubernetesManifest@0
+            inputs:
+              action: 'createConfigMap'
+              configMapName: 'sql-scripts'
+              namespace: $(namespace)
+              configMapArguments: |
+                --from-dir=sql_scripts
+
+          - task: KubernetesManifest@0
+            inputs:
+              action: 'createConfigMap'
+              configMapName: 'rules'
+              namespace: $(namespace)
+              configMapArguments: |
+                --from-dir=rules
+
+          - task: KubernetesManifest@0
+            inputs:
+              action: 'deploy'
+              kubernetesServiceConnection: $(kubernetesServiceConnection)
+              namespace: $(namespace)
+              manifests: |
+                k8s/deployment.yaml
+                k8s/pvc.yaml
+
+          - task: KubernetesExec@0
+            inputs:
+              command: 'wait'
+              arguments: '--for=condition=complete job/sql-scanner --timeout=300s'
+              namespace: $(namespace)
+
+          - task: KubernetesExec@0
+            inputs:
+              command: 'logs'
+              arguments: 'job/sql-scanner'
+              namespace: $(namespace)
+
+- stage: Cleanup
+  displayName: 'Cleanup'
+  dependsOn: Deploy
+  condition: always()
+  jobs:
+  - deployment: Cleanup
+    displayName: 'Cleanup Resources'
+    environment: production
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: KubernetesManifest@0
+            inputs:
+              action: 'delete'
+              kubernetesServiceConnection: $(kubernetesServiceConnection)
+              namespace: $(namespace)
+              manifests: |
+                k8s/deployment.yaml
+                k8s/pvc.yaml 

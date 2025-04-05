@@ -1,0 +1,57 @@
+- name: DropTable
+  description: "Detects DROP TABLE commands, which can lead to irreversible data loss."
+  command: "DROP TABLE"
+  severity: HIGH
+  case_sensitive: false
+  whole_word: true
+  enabled: true
+
+- name: GrantAllPrivileges
+  description: "Detects GRANT ALL PRIVILEGES, which is overly permissive and a security risk."
+  command: "GRANT ALL PRIVILEGES"
+  severity: HIGH
+  case_sensitive: false
+  whole_word: false
+  enabled: true
+
+- name: TruncateTable
+  description: "Detects TRUNCATE TABLE commands, which delete all data quickly."
+  command: "TRUNCATE TABLE"
+  severity: MEDIUM
+  case_sensitive: false
+  whole_word: true
+  enabled: true
+
+- name: CommentedOutDropTable
+  description: "Detects commented out DROP TABLE commands, which may be accidentally uncommented"
+  command: "--\\s*DROP TABLE"
+  severity: LOW
+  case_sensitive: false
+  whole_word: true
+  regex: true
+  enabled: true
+
+- name: InsertUser
+  description: "Detects INSERT INTO user commands, adding a user to a table"
+  command: "INSERT\\s+INTO\\s+user"
+  severity: MEDIUM
+  case_sensitive: false
+  whole_word: false
+  regex: true
+  enabled: true
+
+- name: OriginEnv
+  description: "Detects Synapse Link INVALID OriginEnv field manipulation."
+  command: "OriginEnv"
+  severity: HIGH
+  case_sensitive: true
+  whole_word: true
+  enabled: true 
+
+- name: EditedDate 
+  description: "Detects Synapse Link INVALID EditedDate field manipulation."
+  command: "EditedDate"
+  severity: HIGH
+  case_sensitive: true
+  whole_word: true
+  enabled: true
