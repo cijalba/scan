@@ -1,0 +1,26 @@
+services:
+  sql-scanner:
+    build: .
+    volumes:
+      - ./sql_scripts:/app/sql_scripts
+      - ./rules:/app/rules
+      - ./reports:/app/reports
+      - ./config.yaml:/app/config.yaml
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONPATH=/app
+      - MAX_FILE_SIZE=10485760
+      - REPORT_FORMATS=text,html,json,csv
+    healthcheck:
+      test: ["CMD", "python", "sql_scanner.py", "--diags"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped
+    command: >
+      -s sql_scripts
+      -r rules
+      --report-format text html json csv
+      --output-dir reports
+      --max-file-size 10485760 

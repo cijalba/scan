@@ -1,0 +1,48 @@
+pipeline {
+    agent any
+
+    environment {
+        PYTHON_VERSION = '3.9'
+        VENV_PATH = 'venv'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Setup Python') {
+            steps {
+                sh """
+                    python${PYTHON_VERSION} -m venv ${VENV_PATH}
+                    . ${VENV_PATH}/bin/activate
+                    python -m pip install --upgrade pip
+                    pip install -r requirements.txt
+                """
+            }
+        }
+
+        stage('Run SQL Scanner') {
+            steps {
+                sh """
+                    . ${VENV_PATH}/bin/activate
+                    python sql_scanner.py -s sql_scripts -r rules --report-format html json
+                """
+            }
+        }
+
+        stage('Archive Reports') {
+            steps {
+                archiveArtifacts artifacts: 'reports/**', fingerprint: true
+            }
+        }
+    }
+
+    post {
+        always {
+            cleanWs()
+        }
+    }
+} 
