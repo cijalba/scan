@@ -1,0 +1,71 @@
+- name: "PasswordInPlainText"
+  description: "Detects passwords stored in plain text"
+  command: "password.*=.*['\"]"
+  severity: "HIGH"
+  regex: true
+  case_sensitive: false
+  enabled: true
+
+- name: "UnsafeDynamicSQL"
+  description: "Detects potentially unsafe dynamic SQL execution"
+  command: "EXEC.*\\(.*\\+.*\\)"
+  severity: "HIGH"
+  regex: true
+  case_sensitive: false
+  enabled: false
+
+- name: "SensitiveDataExposure"
+  description: "Detects potential exposure of sensitive data"
+  command: "SELECT.*FROM.*(users|passwords|credentials|secrets)"
+  severity: "HIGH"
+  regex: true
+  case_sensitive: false
+  enabled: false
+
+- name: "SQLInjectionRisk"
+  description: "Detects potential SQL injection vulnerabilities"
+  command: ".*\\+.*\\+.*|.*\\|\\|.*|.*CONCAT.*\\+.*"
+  severity: "HIGH"
+  regex: true
+  case_sensitive: false
+  enabled: false
+
+- name: "PrivilegeEscalation"
+  description: "Detects potential privilege escalation attempts"
+  command: "GRANT.*TO.*|ALTER.*USER.*|CREATE.*USER.*"
+  severity: "HIGH"
+  regex: true
+  case_sensitive: false
+  enabled: true
+
+- name: "DataExfiltration"
+  description: "Detects potential data exfiltration attempts"
+  command: "SELECT.*INTO.*OUTFILE|LOAD_FILE|INTO.*OUTFILE"
+  severity: "HIGH"
+  regex: true
+  case_sensitive: false
+  enabled: false
+
+- name: "UnsafeFileOperations"
+  description: "Detects unsafe file operations"
+  command: "LOAD_FILE|INTO.*OUTFILE|LOAD.*DATA.*INFILE"
+  severity: "MEDIUM"
+  regex: true
+  case_sensitive: false
+  enabled: false
+
+- name: "UnsafeStringConcatenation"
+  description: "Detects unsafe string concatenation"
+  command: ".*\\+.*\\+.*|.*\\|\\|.*"
+  severity: "MEDIUM"
+  regex: true
+  case_sensitive: false
+  enabled: false
+
+- name: "CommentedOutCode"
+  description: "Detects commented out code that might be accidentally uncommented"
+  command: "--.*(DROP|DELETE|UPDATE|INSERT)"
+  severity: "LOW"
+  regex: true
+  case_sensitive: false
+  enabled: false 

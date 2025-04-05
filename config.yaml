@@ -1,0 +1,21 @@
+reporting:
+  format: ["text", "html", "json", "csv"]
+  output_dir: "reports"
+  severity_colors:
+    HIGH: "red"
+    MEDIUM: "orange"
+    LOW: "yellow"
+
+scanning:
+  max_file_size: 10485760  # 10MB
+  exclude_patterns:
+    - "*.bak"
+    - "*.tmp"
+  include_patterns:
+    - "*.sql"
+    - "*.sqlite"
+
+rules:
+  default_severity: "MEDIUM"
+  case_sensitive: false
+  whole_word: true 
