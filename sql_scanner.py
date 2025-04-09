@@ -13,7 +13,7 @@ import shutil
 from enum import Enum
 from jinja2 import Template
 
-VERSION = "1.0.0 - Carlos Ijalba 2025."
+VERSION = "1.0.1 - Carlos Ijalba 2025."
 
 class Rule:
     def __init__(self, name, description, command, severity="MEDIUM", case_sensitive=False, whole_word=False, regex=False, enabled=True):
@@ -719,6 +719,12 @@ def parse_args():
                       help='Maximum number of report runs to keep')
     parser.add_argument('--pause', action='store_true',
                       help='Pause output when screen is full')
+    
+    # If no arguments are provided, show help
+    if len(sys.argv) == 1:
+        parser.print_help()
+        sys.exit(0)
+    
     return parser.parse_args()
 
 def analyze_sql_complexity_metrics(file_path):
