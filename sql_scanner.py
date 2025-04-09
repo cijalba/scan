@@ -13,7 +13,7 @@ import shutil
 from enum import Enum
 from jinja2 import Template
 
-VERSION = "1.0.0"
+VERSION = "1.0.1 - Carlos Ijalba 2025."
 
 class Rule:
     def __init__(self, name, description, command, severity="MEDIUM", case_sensitive=False, whole_word=False, regex=False, enabled=True):
@@ -682,60 +682,49 @@ def cleanup_reports(reports_dir, max_age_days=None, max_runs=None):
 
     print(f"Cleanup complete. Deleted {len(to_delete)} report directories.")
 
+def pause_output():
+    """Pause output and wait for user input."""
+    print("\nPress Enter to continue...", end='')
+    input()
+
 def parse_args():
-    parser = argparse.ArgumentParser(
-        description='SQL Scanner - A tool to scan SQL files for potential issues',
-        formatter_class=argparse.RawDescriptionHelpFormatter
-    )
-    
+    """Parse command line arguments."""
+    parser = argparse.ArgumentParser(description='SQL Scanner - Security and Quality Analysis Tool')
     parser.add_argument('-v', '--version', action='version', version=f'%(prog)s {VERSION}')
-    parser.add_argument('-s', '--sqlpath', 
-                        default='sql_scripts',
-                        help='Path to directory containing SQL files to scan')
-    parser.add_argument('-r', '--rulespath',
-                        default='rules',
-                        help='Path to directory containing rule YAML files')
-    parser.add_argument('-d', '--diags',
-                        action='store_true',
-                        help='Run internal diagnostics')
-    parser.add_argument('--report-format', 
-                        choices=['text', 'html', 'json', 'csv'],
-                        default='text',
-                        help='Output report format')
-    parser.add_argument('--output-dir',
-                        default='reports',
-                        help='Directory for report output')
-    parser.add_argument('--exclude',
-                        help='Pattern to exclude files')
-    parser.add_argument('--include',
-                        help='Pattern to include files')
-    parser.add_argument('--max-file-size',
-                        type=int,
-                        help='Maximum file size to scan')
-    parser.add_argument('--config',
-                        default='config.yaml',
-                        help='Path to configuration file')
-    parser.add_argument('--severity',
-                        choices=['HIGH', 'MEDIUM', 'LOW'],
-                        help='Only report findings with specified severity level')
-    parser.add_argument('--cleanup-reports',
-                        action='store_true',
-                        help='Clean up old reports')
-    parser.add_argument('--max-age-days',
-                        type=int,
-                        help='Maximum age of reports in days to keep')
-    parser.add_argument('--max-runs',
-                        type=int,
-                        help='Maximum number of reports to keep')
-    parser.add_argument('--test',
-                        action='store_true',
-                        help='Run the scanner with example files for testing')
+    parser.add_argument('-s', '--sqlpath', default='sql_scripts',
+                      help='Path to SQL files directory')
+    parser.add_argument('-r', '--rulespath', default='rules',
+                      help='Path to rules directory')
+    parser.add_argument('-c', '--config', default='config.yaml',
+                      help='Path to configuration file')
+    parser.add_argument('-o', '--output-dir', default='reports',
+                      help='Directory for report output')
+    parser.add_argument('--report-format', nargs='+', choices=['text', 'html', 'json', 'csv'],
+                      help='Report format(s) to generate')
+    parser.add_argument('--severity', choices=['HIGH', 'MEDIUM', 'LOW'],
+                      help='Filter findings by severity')
+    parser.add_argument('--exclude', help='Pattern to exclude from scanning')
+    parser.add_argument('--include', help='Pattern to include in scanning')
+    parser.add_argument('--max-file-size', type=int,
+                      help='Maximum file size in bytes')
+    parser.add_argument('--test', action='store_true',
+                      help='Run in test mode with example files')
+    parser.add_argument('--diags', action='store_true',
+                      help='Run diagnostics')
+    parser.add_argument('--cleanup-reports', action='store_true',
+                      help='Clean up old reports')
+    parser.add_argument('--max-age-days', type=int, default=30,
+                      help='Maximum age of reports to keep (days)')
+    parser.add_argument('--max-runs', type=int, default=10,
+                      help='Maximum number of report runs to keep')
+    parser.add_argument('--pause', action='store_true',
+                      help='Pause output when screen is full')
     
     # If no arguments are provided, show help
     if len(sys.argv) == 1:
         parser.print_help()
         sys.exit(0)
-        
+    
     return parser.parse_args()
 
 def analyze_sql_complexity_metrics(file_path):
@@ -955,8 +944,10 @@ def main():
         print(f"\nProcessed {len(findings)} SQL file(s)")
         if findings:
             print(f"Found {len(findings)} potential issues:")
-            for finding in findings:
+            for i, finding in enumerate(findings, 1):
                 print(finding)
+                if args.pause and i % 10 == 0:  # Pause every 10 findings
+                    pause_output()
         else:
             print("No issues found.")
 
