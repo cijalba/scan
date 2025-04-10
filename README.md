@@ -249,7 +249,7 @@ sql-scanner/
 ├── requirements.txt        # Python dependencies
 ├── config.yaml             # Configuration file
 ├── README.md               # Documentation
-├── LICENSE                 # GPLv2 license
+├── LICENSE                 # MIT license manifest
 ├── sql_scripts/            # Sample SQL files for testing
 │   ├── example1.sql
 │   ├── example2.sql
@@ -512,4 +512,4 @@ The scanner includes rules for detecting:
 
 ## License
 
-This project is licensed under the GNU General Public License v3.0 (GPLv3) - see the LICENSE file for details. 
+This project is licensed under the MIT license - see the LICENSE file for details. 
