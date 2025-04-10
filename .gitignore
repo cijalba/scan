@@ -32,6 +32,7 @@ env/
 *.swo
 *~
 lab.code-workspace
+.cursorrules
 
 # OS
 .DS_Store
