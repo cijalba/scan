@@ -1,0 +1,41 @@
+
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>SQL Scanner Report</title>
+        <style>
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            .finding { margin-bottom: 20px; padding: 10px; border: 1px solid #ccc; }
+            .high { background-color: #ffdddd; }
+            .medium { background-color: #fff3cd; }
+            .low { background-color: #d4edda; }
+        </style>
+    </head>
+    <body>
+        <h1>SQL Scanner Report</h1>
+        <p>Generated on 2025-05-09 11:12:54</p>
+        
+        
+        <div class="finding high">
+            <h3>DropTable</h3>
+            <p><strong>File:</strong> /var/folders/2y/c2cp02lj68x69hyfypqk55zr0000gp/T/tmpmm63lt_r/sql_scripts/test.sql</p>
+            <p><strong>Line:</strong> 9</p>
+            <p><strong>Severity:</strong> HIGH</p>
+            <p><strong>Description:</strong> Detects DROP TABLE commands</p>
+            <pre>            DROP TABLE users;
+</pre>
+        </div>
+        
+        <div class="finding high">
+            <h3>PlainTextPassword</h3>
+            <p><strong>File:</strong> /var/folders/2y/c2cp02lj68x69hyfypqk55zr0000gp/T/tmpmm63lt_r/sql_scripts/test.sql</p>
+            <p><strong>Line:</strong> 11</p>
+            <p><strong>Severity:</strong> HIGH</p>
+            <p><strong>Description:</strong> Detects passwords stored in plain text</p>
+            <pre>            SELECT * FROM users WHERE password = 'plaintext123';
+</pre>
+        </div>
+        
+    </body>
+    </html>
+    

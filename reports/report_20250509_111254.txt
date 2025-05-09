@@ -1,0 +1,17 @@
+SQL Scanner Report
+=================
+
+File: /var/folders/2y/c2cp02lj68x69hyfypqk55zr0000gp/T/tmpbcprxjvz/sql_scripts/test.sql
+Line: 9
+Rule: DropTable
+Severity: HIGH
+Description: Detects DROP TABLE commands
+Content: DROP TABLE users;
+--------------------------------------------------------------------------------
+File: /var/folders/2y/c2cp02lj68x69hyfypqk55zr0000gp/T/tmpbcprxjvz/sql_scripts/test.sql
+Line: 11
+Rule: PlainTextPassword
+Severity: HIGH
+Description: Detects passwords stored in plain text
+Content: SELECT * FROM users WHERE password = 'plaintext123';
+--------------------------------------------------------------------------------

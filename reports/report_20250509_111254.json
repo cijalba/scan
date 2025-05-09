@@ -1,0 +1,22 @@
+[
+  {
+    "file_path": "/var/folders/2y/c2cp02lj68x69hyfypqk55zr0000gp/T/tmpnnlaipk_/sql_scripts/test.sql",
+    "line_number": 9,
+    "line_content": "            DROP TABLE users;\n",
+    "rule": {
+      "name": "DropTable",
+      "description": "Detects DROP TABLE commands",
+      "severity": "HIGH"
+    }
+  },
+  {
+    "file_path": "/var/folders/2y/c2cp02lj68x69hyfypqk55zr0000gp/T/tmpnnlaipk_/sql_scripts/test.sql",
+    "line_number": 11,
+    "line_content": "            SELECT * FROM users WHERE password = 'plaintext123';\n",
+    "rule": {
+      "name": "PlainTextPassword",
+      "description": "Detects passwords stored in plain text",
+      "severity": "HIGH"
+    }
+  }
+]

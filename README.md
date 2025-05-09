@@ -367,7 +367,7 @@ python sql_scanner.py --exclude "*.bak"
 
 Run diagnostics:
 ```bash
-python sql_scanner.py -d
+python sql_scanner.py --diags
 ```
 
 Filter by severity:
@@ -512,4 +512,4 @@ The scanner includes rules for detecting:
 
 ## License
 
-This project is licensed under the MIT license - see the LICENSE file for details. 
+This project is licensed under the MIT license - see the LICENSE file for details.

@@ -1,0 +1,5 @@
+file_path,line_number,line_content,rule_name,rule_description,rule_severity
+/var/folders/2y/c2cp02lj68x69hyfypqk55zr0000gp/T/tmpfi5p0mx4/sql_scripts/test.sql,9,"            DROP TABLE users;
+",DropTable,Detects DROP TABLE commands,HIGH
+/var/folders/2y/c2cp02lj68x69hyfypqk55zr0000gp/T/tmpfi5p0mx4/sql_scripts/test.sql,11,"            SELECT * FROM users WHERE password = 'plaintext123';
+",PlainTextPassword,Detects passwords stored in plain text,HIGH
